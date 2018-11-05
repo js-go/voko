@@ -49,6 +49,6 @@ npx sequelize migration:generate --name=init-users
 
 ### 4.生成表
 
-npx sequelize db:migrate #生成表
-npx sequelize db:migrate:undo #删除表
+npx sequelize db:migrate #生成表  
+npx sequelize db:migrate:undo #删除表  
 npx sequelize db:migrate:undo:all

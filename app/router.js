@@ -5,12 +5,37 @@
  */
 module.exports = app => {
   const { router, controller, middleware } = app;
+  const apiV1Router = router.namespace('/api/v1');
   const tokenRequired = middleware.tokenRequired();
 
-  router.get('/', controller.home.index);
-  router.get('/user/:id', tokenRequired, controller.users.show);
-  router.post('/user', controller.users.create);
+  // user
+  apiV1Router.post('/user/register', controller.users.create);
+  apiV1Router.get('/user/list/:id', tokenRequired, controller.users.list);
 
-  router.get('/authCallback', controller.users.authenticate);
-  router.post('/authenticate', app.passport.authenticate('local', { successRedirect: '/authCallback' }));
+  // authentication
+  apiV1Router.get('/authCallback', controller.users.authenticate);
+  apiV1Router.post('/authenticate', app.passport.authenticate('local', { successRedirect: '/authCallback' }));
 };
+
+/**
+ * TODO
+ * 
+ * /authenticate - [post] 登录 获取jwt token
+ * 
+ * /user/register 新增用户
+ * /user/resetpassword
+ * /user/list/:id 获取用户基本信息
+ * 
+ * /group/add 创建组
+ * /group/list 获取组列表
+ * /group/update 更新组
+ * /group/delect/:id 删除组
+ * /group/member/invite/:id 添加成员
+ * /group/member/delect/:id 删除成员
+ * 
+ * /todo/add  - [post] 新增todo
+ * /todo/list - [get]  获取全部列表
+ * /todo/list/:id - [get] 获取todo详情
+ * /todo/list/:id - [put] 更新todo
+ * /todo/list/:id - [delect]  删除todo
+ *  */

@@ -1,7 +1,7 @@
 const Controller = require('egg').Controller;
 
 class UserController extends Controller {
-  async show() {
+  async list() {
     const ctx = this.ctx;
     ctx.status = 200;
     ctx.body = 'hi eep';

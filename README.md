@@ -35,7 +35,7 @@ $ npm stop
 
 ### 1.新建数据库 -p 为密码选项
 
-mysql -u root -p -e 'CREATE DATABASE IF NOT EXISTS `voko_default`;'
+mysql -u root -p -e 'CREATE DATABASE IF NOT EXISTS `voko_default`;'  
 mysql -u root -p -e 'CREATE DATABASE IF NOT EXISTS `voko_unittest`;'
 
 ### 2.初始化 Migrations 配置文件和目录

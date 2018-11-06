@@ -7,15 +7,15 @@ exports.sequelize = {
   package: 'egg-sequelize'
 };
 
-exports.passport = {
-  enable: true,
-  package: 'egg-passport',
-};
+// exports.passport = {
+//   enable: true,
+//   package: 'egg-passport',
+// };
 
-exports.passportLocal = {
-  enable: true,
-  package: 'egg-passport-local',
-};
+// exports.passportLocal = {
+//   enable: true,
+//   package: 'egg-passport-local',
+// };
 
 exports.jwt = {
   enable: true,

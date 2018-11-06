@@ -28,6 +28,14 @@ class UserService extends Service {
       name: 'eep'
     });
   }
+
+  async saveTodoItem() {
+    const item = new this.ctx.model.TodoItem();
+    item.content = 'test';
+    item.tid = '1';
+    return item.save();
+  }
+
 }
 
 module.exports = UserService;

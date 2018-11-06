@@ -9,7 +9,7 @@ module.exports = app => {
   // user
   router.post('/user/register', controller.users.create);
   router.get('/user/list/:id', tokenRequired, controller.users.list);
-
+  router.get('/test', controller.users.test);
   // authentication
   router.post('/authenticate', controller.users.authenticate);
 };

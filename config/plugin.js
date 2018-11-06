@@ -7,11 +7,6 @@ exports.sequelize = {
   package: 'egg-sequelize'
 };
 
-// exports.redis = {
-//   enable: true,
-//   package: 'egg-redis',
-// };
-
 exports.passport = {
   enable: true,
   package: 'egg-passport',

@@ -5,16 +5,13 @@
  */
 module.exports = app => {
   const { router, controller, middleware } = app;
-  const apiV1Router = router.namespace('/api/v1');
   const tokenRequired = middleware.tokenRequired();
-
   // user
-  apiV1Router.post('/user/register', controller.users.create);
-  apiV1Router.get('/user/list/:id', tokenRequired, controller.users.list);
+  router.post('/user/register', controller.users.create);
+  router.get('/user/list/:id', tokenRequired, controller.users.list);
 
   // authentication
-  apiV1Router.get('/authCallback', controller.users.authenticate);
-  apiV1Router.post('/authenticate', app.passport.authenticate('local', { successRedirect: '/authCallback' }));
+  router.post('/authenticate', controller.users.authenticate);
 };
 
 /**

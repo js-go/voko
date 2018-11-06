@@ -10,37 +10,42 @@ class UserController extends Controller {
   async create() {
     const ctx = this.ctx;
     const { phone, password } = ctx.request.body;
-    const user = await ctx.service.User.create({ phone, password });
-    ctx.status = 201;
-    ctx.body = user;
+    // 生成密码hash
+    const user = await ctx.service.User.create({phone, password});
+    if (user) {
+      ctx.status = 201;
+      return ctx.body = {
+        status: 200,
+        message: 'success'
+      };
+    }
+    ctx.status = 500;
+    return ctx.body = {
+      status: 500,
+      message: 'fail'
+    }
   }
 
   async authenticate() {
     const {ctx, config, app} = this;
-    // const { phone, password } = ctx.request.body;
-    // const user = await service.user.findUserByPhone(phone);
-    
-    // if (!user) {
-    //   // user not found
-    //   ctx.status = 401;
-    //   return ctx.body = {
-    //     message: 'user not found'
-    //   }
-    // } 
-    // if (user.password != password) {
-    //   // wrong password
-    //   ctx.status = 401;
-    //   return ctx.body = {
-    //     message: 'wrong password'
-    //   }
-    // }
     const secret = config.jwt.secret;
-    var token = app.jwt.sign({ id: 'bar' }, secret);
-    
+    // get user
+    const {phone, password} = ctx;
+    const user = await ctx.service.User.findUserByPhone(phone);
+    if (user) {
+       // compare password
+      const passhash = user.password;
+      const equal = ctx.helper.bcompare(password, passhash);
+      if (!equal) return null;
+    }
+    var token = app.jwt.sign({ id: user.id }, secret);
     ctx.status = 200;
     return ctx.body = {
+      status: 200,
       message: 'success',
-      token: token
+      data: {
+        token: token
+      }
     }
   }
 }

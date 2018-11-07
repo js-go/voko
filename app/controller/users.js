@@ -10,13 +10,14 @@ class UserController extends Controller {
   async create() {
     const ctx = this.ctx;
     const { phone, password } = ctx.request.body;
-    // 生成密码hash？
-    const user = await ctx.service.user.create({phone, password});
-    // 生成用户默认组？
+    const passhash = ctx.helper.bhash(password);
+    const user = await ctx.service.user.create({phone, passhash});
     if (user) {
+      // 新增用户时，创建默认组
+      await ctx.service.group.create(user.id);
       ctx.status = 201;
       return ctx.body = {
-        status: 200,
+        status: 201,
         message: 'success'
       };
     }

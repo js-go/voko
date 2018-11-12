@@ -1,7 +1,7 @@
 'use strict';
 
 module.exports = app => {
-  const { STRING, INTEGER, DATE, BOOLEAN} = app.Sequelize;
+  const { STRING, INTEGER, DATE, BOOLEAN } = app.Sequelize;
 
   const Todo = app.model.define('todo', {
     id: { type: INTEGER, primaryKey: true, autoIncrement: true },
@@ -10,7 +10,7 @@ module.exports = app => {
     exp_date: DATE,
     is_done: BOOLEAN,
     created_at: DATE,
-    updated_at: DATE
+    updated_at: DATE,
   });
 
   return Todo;

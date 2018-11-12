@@ -1,11 +1,11 @@
-'use strict';
+'use strict'
 
 // had enabled by egg
 // exports.static = true;
 exports.sequelize = {
   enable: true,
-  package: 'egg-sequelize'
-};
+  package: 'egg-sequelize',
+}
 
 // exports.passport = {
 //   enable: true,
@@ -19,5 +19,5 @@ exports.sequelize = {
 
 exports.jwt = {
   enable: true,
-  package: "egg-jwt"
-};
+  package: 'egg-jwt',
+}

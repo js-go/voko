@@ -1,33 +1,41 @@
-'use strict';
+'use strict'
 
 module.exports = appInfo => {
-  const config = exports = {};
+  const config = (exports = {})
 
   // use for cookie sign key, should change to your own and keep security
-  config.keys = appInfo.name + '_1541123489941_1931';
+  config.keys = appInfo.name + '_1541123489941_1931'
 
   // add your config here
-  config.middleware = [];
+  config.middleware = []
 
   config.sequelize = {
     dialect: 'mysql',
     host: '127.0.0.1',
     port: 3306,
-    username: "root",
-    password: "root",
+    username: 'root',
+    password: 'root',
     database: 'voko_default',
     operatorsAliases: false,
-  };
+    dialectOptions: {
+      charset: 'utf8mb4',
+    },
+    define: {
+      underscored: true,
+      charset: 'utf8mb4',
+      collate: 'utf8mb4_unicode_ci',
+    },
+  }
 
   exports.jwt = {
-    secret: "nodejsisawsome"
-  };
+    secret: 'nodejsisawsome',
+  }
 
   config.security = {
     csrf: {
       enable: false,
     },
-  };
+  }
 
-  return config;
-};
+  return config
+}

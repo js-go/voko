@@ -1,3 +1,12 @@
 {
-  "extends": "eslint-config-egg"
+  "env": {
+    "es6": true,
+    "browser": false,
+    "node": true
+  },
+  "extends": "eslint-config-egg",
+  "rules": {
+    "strict": "off",
+    "semi": ["off", "never"]
+  }
 }

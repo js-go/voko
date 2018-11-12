@@ -1,15 +1,21 @@
-'use strict';
+'use strict'
 
-module.exports = app => {
-  const { STRING, INTEGER} = app.Sequelize;
+module.exports = ({ model, Sequelize }) => {
+  const Group = model.define('group', {
+    id: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
+    group_name: Sequelize.STRING(30),
+    group_owner_id: Sequelize.STRING(20),
+    can_delete: {
+      type: Sequelize.BOOLEAN,
+      defaultValue: true,
+    },
+    is_deleted: {
+      type: Sequelize.BOOLEAN,
+      defaultValue: false,
+    },
+    created_at: Sequelize.DATE,
+    updated_at: Sequelize.DATE,
+  })
 
-  const Group = app.model.define('group', {
-    id: { type: INTEGER, primaryKey: true, autoIncrement: true },
-    uid: STRING(20),
-    group_name: STRING(30),
-    group_color: STRING(30),
-    group_owner_id: STRING(20)
-  });
-
-  return Group;
-};
+  return Group
+}

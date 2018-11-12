@@ -21,6 +21,10 @@ module.exports = {
       map: STRING(255),
       photo: STRING(255),
       trip: STRING(255),
+      is_done: {
+        type: BOOLEAN,
+        defaultValue: false,
+      },
     })
   },
 

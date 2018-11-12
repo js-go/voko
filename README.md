@@ -33,17 +33,16 @@ $ npm stop
 [egg]: https://eggjs.org
 
 
-### 1.新建数据库 -p 为密码选项
-
-mysql -u root -p -e 'CREATE DATABASE IF NOT EXISTS `voko_default`;'  
-mysql -u root -p -e 'CREATE DATABASE IF NOT EXISTS `voko_unittest`;'
-
-### 2.初始化 Migrations 配置文件和目录
+### 1.配置好database/config.json、生成migrations目录
 
 npx sequelize init:config
 npx sequelize init:migrations
 
-### 3.生成文件
+### 2.生成库
+
+[NODE_ENV=development/test/production] npx sequelize db:create --charset utf8mb4
+
+### 3.生成初始表
 
 npx sequelize migration:generate --name=init-users
 

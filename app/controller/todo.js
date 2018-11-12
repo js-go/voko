@@ -8,6 +8,11 @@ class TodoController extends Controller {
  * /todo/list/:id - [put] 更新todo
  * /todo/list/:id - [delect]  删除todo
  * */
+
+  // todo/add
+  async add() {
+    
+  }
 }
 
 module.exports = TodoController;

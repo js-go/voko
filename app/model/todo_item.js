@@ -1,7 +1,7 @@
 'use strict';
 
 module.exports = app => {
-  const { STRING, INTEGER } = app.Sequelize;
+  const { STRING, INTEGER, BOOLEAN } = app.Sequelize;
 
   const TodoItem = app.model.define('todo_item', {
     id: { type: INTEGER, primaryKey: true, autoIncrement: true },
@@ -14,6 +14,10 @@ module.exports = app => {
     map: STRING(255),
     photo: STRING(255),
     trip: STRING(255),
+    is_done: {
+      type: BOOLEAN,
+      defaultValue: false,
+    },
   }, {
     timestamps: false,
   });

@@ -35,7 +35,7 @@ $ npm stop
 
 ### 1.配置好database/config.json、生成migrations目录
 
-npx sequelize init:config
+npx sequelize init:config  
 npx sequelize init:migrations
 
 ### 2.生成库

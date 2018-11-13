@@ -1,12 +1,6 @@
 const Controller = require('egg').Controller
 
 class UserController extends Controller {
-  async list() {
-    const ctx = this.ctx
-    ctx.status = 200
-    ctx.body = 'hi eep'
-  }
-
   async create() {
     const { ctx, config, app } = this
     const { phone, password } = ctx.request.body
@@ -50,12 +44,6 @@ class UserController extends Controller {
       message: 'fail',
     }
     return
-  }
-
-  async test() {
-    const { ctx } = this
-    await ctx.service.user.saveTodoItem()
-    ctx.body = 'ok'
   }
 
   async authenticate() {

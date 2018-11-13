@@ -10,7 +10,7 @@ module.exports = app => {
   // user
   router.post('/user/register', controller.users.create)
   router.get('/user/list/:id', tokenRequired, controller.users.list)
-  router.get('/test', controller.users.test)
+  
   // authenticate
   router.post('/authenticate', controller.users.authenticate)
 
@@ -25,6 +25,14 @@ module.exports = app => {
   router.get('/group/search', tokenRequired)
 
   router.get('/search/group', tokenRequired)
+
+  // Todo 
+  router.post('/todo/add', controller.todo.add)
+  router.get('/todo/list', controller.todo.listAll)
+  router.get('/todo/list/:id', controller.todo.getTodoItem)
+  router.put('/todo/list/:id', controller.todo.updateTodoItem)
+  router.delete('/todo/list/:id', controller.todo.delectTodoItem)
+
 }
 
 /**

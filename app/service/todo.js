@@ -59,6 +59,7 @@ class TodoService extends Service {
         tid: id
       },
     })
+    
     function _update(list) {
       const promises = R.map((item) => {
         Promise.resolve().then(() => item.update())
@@ -66,10 +67,8 @@ class TodoService extends Service {
       return promises
     }
     await todo.update()
-    Promise.all(_update(todoItems))
-    .then(() => {
-      return null;
-    })
+    await Promise.all(_update(todoItems))
+    return null
   }
 
   async delectTodoItem(id) {
@@ -83,17 +82,16 @@ class TodoService extends Service {
         tid: id
       },
     })
-    await todo.destroy()
+    
     function _delect(list) {
       const promises = R.map((item) => {
         Promise.resolve().then(() => item.destroy())
       }, list)
       return promises
     }
-    Promise.all(_delect(todoItems))
-    .then(() => {
-      return null;
-    })
+    await todo.destroy()
+    await Promise.all(_delect(todoItems))
+    return null
   }
 }
 

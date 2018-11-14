@@ -1,5 +1,5 @@
 const Service = require('egg').Service
-
+const R = require('ramda')
 const sql = (str) => {
   return `SELECT ${str} FROM (SELECT g2.*, t.name, t.exp_date, t.is_done, t.created_at, t.id AS tid FROM (SELECT u.username, g1.* FROM users AS u LEFT JOIN (SELECT g.id AS gid, g.group_name, g.group_owner_id, gm.user_id FROM groups AS g LEFT JOIN group_members AS gm ON g.id = gm.group_id) AS g1 ON g1.user_id= u.id) AS g2 LEFT JOIN todos AS t ON g2.user_id = t.uid) AS g3 LEFT JOIN todo_items AS ti ON g3.tid = ti.tid`
 }

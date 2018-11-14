@@ -1,5 +1,4 @@
 const Service = require('egg').Service
-const Sequelize = require('sequelize')
 const R = require('ramda')
 const { addDays } = require('date-fns')
 

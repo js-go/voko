@@ -9,7 +9,6 @@ module.exports = app => {
   const tokenRequired = middleware.tokenRequired()
   // user
   router.post('/user/register', controller.users.create)
-  router.get('/user/list/:id', tokenRequired, controller.users.list)
   
   // authenticate
   router.post('/authenticate', controller.users.authenticate)
@@ -28,19 +27,9 @@ module.exports = app => {
 
   // Todo 
   router.post('/todo/add', controller.todo.add)
-  router.get('/todo/list', controller.todo.listAll)
+  router.get('/todo/list/:page', controller.todo.list)
   router.get('/todo/list/:id', controller.todo.getTodoItem)
   router.put('/todo/list/:id', controller.todo.updateTodoItem)
   router.delete('/todo/list/:id', controller.todo.delectTodoItem)
 
 }
-
-/**
- * TODO
- *
- * /authenticate - [post] 登录 获取jwt token
- *
- * /user/register 新增用户
- * /user/resetpassword
- * /user/list/:id 获取用户基本信息
- *  */

@@ -11,7 +11,7 @@ class UserController extends Controller {
     if (userExist) {
       ctx.body = {
         status: 500,
-        message: 'fail',
+        message: 'phone has been used.',
       }
 
       return
@@ -29,7 +29,7 @@ class UserController extends Controller {
 
       ctx.body = {
         status: 201,
-        message: 'success',
+        message: 'success created',
         data: {
           token,
         },

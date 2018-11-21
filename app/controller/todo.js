@@ -51,9 +51,10 @@ class TodoController extends Controller {
 
   async getTodoItem() {
     const { ctx } = this;
+    const { uid } = ctx.request.user
     const query = ctx.query;
     const id = query.id;
-    const item = await ctx.service.todo.getTodoItem(id)
+    const item = await ctx.service.todo.getTodoItem(uid, id)
     return ctx.body = {
       status: 200,
       message: 'success',

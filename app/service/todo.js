@@ -42,7 +42,7 @@ class TodoService extends Service {
     }
   }
 
-  async getTodoItem(id) {
+  async getTodoItem(uid, id) {
     const sql = sql('g3.*, ti.id as item_id, ti.content,ti.type,ti.sms_msg,ti.sms_number,ti.phone,ti.map,ti.photo,ti.trip,ti.is_done AS item_done') + 'where g3.user_id = ? and ti.tid = ?'
     const item = await this.ctx.db.query(list_sql, uid, id)
     return item

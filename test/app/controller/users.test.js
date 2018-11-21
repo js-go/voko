@@ -1,6 +1,6 @@
-'use strict';
+'use strict'
 
-const { app, assert } = require('egg-mock/bootstrap');
+const { app, assert } = require('egg-mock/bootstrap')
 
 describe('test/app/controller/users.test.js', () => {
 
@@ -9,7 +9,9 @@ describe('test/app/controller/users.test.js', () => {
     password: 'test',
     username: 'test'
   }
-
+  after(async () => {
+    await mysqlCleanUp(ctx)
+  })
   it('should return 201 created.', async function () {
     await app.httpRequest()
       .post('/user/register')

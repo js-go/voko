@@ -4,7 +4,6 @@ class UserController extends Controller {
   async create() {
     const { ctx, config, app } = this
     const { phone, password } = ctx.request.body
-    const passhash = ctx.helper.bhash(password)
 
     const userExist = await ctx.service.user.findUserByPhone(phone)
 
@@ -17,13 +16,10 @@ class UserController extends Controller {
       return
     }
 
-    const user = await ctx.service.user.create({ phone, password: passhash, username: '哈哈' })
+    const user = await ctx.service.user.newUser({ phone, password, username: '' })
 
     if (user) {
-      // 新增用户时，创建默认组
-      await ctx.service.group.create({ group_name: '默认', owner: user.id, is_default: true })
-
-      const token = app.jwt.sign({ id: user.id }, config.jwt.secret)
+      const token = ctx.service.user.generateAccessToken({ id: user.id })
 
       ctx.status = 201
       ctx.body = {

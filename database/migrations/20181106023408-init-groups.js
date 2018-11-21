@@ -15,7 +15,7 @@ module.exports = {
       uid: STRING(20),
       group_name: STRING(30),
       group_color: STRING(30),
-      group_owner_id: STRING(20),
+      group_owner_id: INTEGER,
     })
   },
 

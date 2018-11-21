@@ -37,7 +37,7 @@ class GroupController extends Controller {
     const { name } = this.ctx.request.body
 
     try {
-      const data = await this.ctx.service.group.create({ group_name: name, owner: id })
+      const data = await this.ctx.service.group.newGroup({ group_name: name, owner: id })
 
       this.ctx.body = {
         code: 200,

@@ -7,30 +7,43 @@ class TodoController extends Controller {
     const { uid, name, exp_date } = ctx.request.body
     let list = ctx.request.body.list
     let tid;
+    const success = () => {
+      ctx.status = 201
+      return ctx.body = {
+        status: 201,
+        message: 'success'
+      }
+    }
+    const error = (msg) => {
+      ctx.status= 500
+      return ctx.body = {
+        status: 500,
+        message: msg
+      }
+    }
+    if (!uid) {
+      error('user require')
+    }
     try {
       tid = await ctx.service.todo.createTodo(uid, name, exp_date)
     } catch(e) {
-      return ctx.body = {
-        status: 500,
-        message: 'error'
-      }
+      error('error')
     }
-    list = JSON.parse(list)
+    // 如果没有详细列表，则返回todo
+    if (!list) {
+      success()
+    }
+    
     let newList = R.map(item => {
       item.tid = tid
       return item
-    }, list);
+    }, JSON.parse(list));
+
     try {
       await ctx.service.todo.createItemList(newList)
-      return ctx.body = {
-        status: 201, //created
-        message: 'success'
-      }
+      success()
     } catch(e) {
-      return ctx.body = {
-        status: 500,
-        message: 'error'
-      }
+      error('error')
     }
   }
 

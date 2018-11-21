@@ -2,18 +2,18 @@ const Service = require('egg').Service
 const R = require('ramda')
 const { addDays } = require('date-fns')
 
+function isGroupOwner(group, user) {
+  return group.group_owner_id === user.id
+}
+
+function groupExist(group) {
+  return group && !group.is_deleted
+}
+
 class GroupService extends Service {
-  isGroupOwner(group, user) {
-    return group.group_owner_id === user.id
-  }
-
-  groupExist(group) {
-    return group && group.is_deleted
-  }
-
-  async create({ group_name, owner, is_default }) {
+  async newGroup({ group_name, owner, is_default = false }) {
     const group = new this.ctx.model.Group()
-    group.group_name = '1'
+    group.group_name = group_name
     group.group_owner_id = owner
     group.can_delete = !is_default
 
@@ -32,7 +32,7 @@ class GroupService extends Service {
       },
     })
 
-    if (!this.groupExist(find_group)) {
+    if (!groupExist(find_group)) {
       throw new Error('group not found')
     }
 
@@ -52,41 +52,56 @@ class GroupService extends Service {
       },
     })
 
-    if (!this.groupExist(find_group)) {
+    if (!groupExist(find_group)) {
       throw new Error('group not found')
     }
 
-    if (this.isGroupOwner(find_group)) {
+    if (isGroupOwner(find_group, current_user)) {
       await find_group.update({
         group_name: name,
       })
     }
 
     // update user custom settings
-    const groupSetting = this.ctx.model.GroupSetting.findOne({
-      user_id: current_user.id,
-      group_id,
-    })
+    // const groupSetting = await this.ctx.model.GroupSettings.findOne({
+    //   user_id: current_user.id,
+    //   group_id,
+    // })
 
-    if (groupSetting) {
-      await groupSetting.update({
-        color,
-      })
-    } else {
-      const newGroupSetting = new this.ctx.model.GroupSetting({
-        user_id: current_user.id,
-        group_id,
-        color,
-      })
+    // if (groupSetting) {
+    //   await groupSetting.update({
+    //     color,
+    //   })
+    // } else {
+    //   const newGroupSetting = new this.ctx.model.GroupSetting({
+    //     user_id: current_user.id,
+    //     group_id,
+    //     color,
+    //   })
 
-      await newGroupSetting.save()
-    }
+    //   await newGroupSetting.save()
+    // }
 
     return true
   }
 
+  /**
+   * group detail
+   *
+   * @param {number} group_id
+   */
+  async groupDetail(group_id) {
+    const group = await this.ctx.model.Group.findByPk(group_id)
+
+    if (!group) {
+      return null
+    }
+
+    return group
+  }
+
   async addMember(group_id, user_id) {
-    const is_existMember = this.ctx.model.GroupMember.find({
+    const is_existMember = this.ctx.model.GroupMember.findOne({
       where: {
         group_id,
         user_id,
@@ -115,11 +130,11 @@ class GroupService extends Service {
       },
     })
 
-    if (!this.groupExist(find_group)) {
+    if (!groupExist(find_group)) {
       throw new Error('group not found')
     }
 
-    if (!this.isGroupOwner(find_group, current_user)) {
+    if (!isGroupOwner(find_group, current_user)) {
       // 只能创建者删除成员
       this.ctx.throw(401, 'remove error')
       return
@@ -144,14 +159,14 @@ class GroupService extends Service {
       where: {
         user_id,
       },
-      order: [['join_date', 'DESC']],
-      attributes: ['group_id', 'color', 'mute'],
+      order: [[ 'join_date', 'DESC' ]],
+      attributes: [ 'group_id', 'color', 'mute' ],
     })
 
     const group_ids = R.pluck('group_id', join_groups)
 
     const getGroupInfoTasks = R.map(({ group_id, color, mute }) => {
-      return this.ctx.model.Group.findOne({ where: group_id }).then(res => ({
+      return this.groupDetail(group_id).then(res => ({
         ...res.dataValues,
         color,
         mute,
@@ -168,11 +183,11 @@ class GroupService extends Service {
       },
     })
 
-    if (!this.groupExist(find_group)) {
+    if (!groupExist(find_group)) {
       throw new Error('group not found')
     }
 
-    if (!this.isGroupOwner(find_group, current_user)) {
+    if (!isGroupOwner(find_group, current_user)) {
       throw new Error('只能创建者邀请加入')
     }
 
@@ -204,7 +219,7 @@ class GroupService extends Service {
     }
 
     // 如果已进入
-    const is_existMember = this.ctx.model.GroupMember.find({
+    const is_existMember = this.ctx.model.GroupMember.findOne({
       where: {
         group_id: find_invite.group_id,
         user_id: user.id,

@@ -1,24 +1,22 @@
-'use strict';
+'use strict'
 
-const { app, assert } = require('egg-mock/bootstrap');
+const { app, assert } = require('egg-mock/bootstrap')
 
-describe('test/app/controller/users.test.js', () => {
-
-  it('should return 201 created.', async function () {
-    const ctx = app.mockContext();
+xdescribe('test/app/controller/users.test.js', () => {
+  it('should return 201 created.', async function() {
+    const ctx = app.mockContext()
     const mock = {
       phone: '18899999999',
       password: ctx.helper.bhash('pass'),
-      username: 'test'
+      username: 'test',
     }
-    await app.httpRequest()
+    await app
+      .httpRequest()
       .post('/user/register')
       .send(mock)
       .expect(201)
       .then(response => {
         console.log(response)
-    })
-  });
-
-
-});
+      })
+  })
+})

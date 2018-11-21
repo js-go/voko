@@ -1,4 +1,11 @@
 {
+  "parserOptions": {
+    "ecmaVersion": 8,
+    "sourceType": "script",
+    "ecmaFeatures": {
+      "experimentalObjectRestSpread": true
+    }
+  },
   "env": {
     "es6": true,
     "browser": false,
@@ -7,6 +14,7 @@
   "extends": "eslint-config-egg",
   "rules": {
     "strict": "off",
+    "valid-jsdoc": "off",
     "semi": ["off", "never"]
   }
 }

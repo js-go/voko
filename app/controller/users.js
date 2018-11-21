@@ -9,11 +9,11 @@ class UserController extends Controller {
     const userExist = await ctx.service.user.findUserByPhone(phone)
 
     if (userExist) {
+      ctx.status = 500
       ctx.body = {
         status: 500,
         message: 'phone has been used.',
       }
-
       return
     }
 
@@ -26,7 +26,6 @@ class UserController extends Controller {
       const token = app.jwt.sign({ id: user.id }, config.jwt.secret)
 
       ctx.status = 201
-
       ctx.body = {
         status: 201,
         message: 'success created',

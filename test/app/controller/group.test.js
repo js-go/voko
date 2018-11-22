@@ -17,8 +17,7 @@ describe('test/controller/group.test.js', () => {
     user1 = await ctx.service.user.newUser({ phone, password: phone, username: username })
     assert(user1.username === username);
 
-    let token1 = await ctx.service.user.generateAccessToken({ id: user1.id })
-    token = token1
+    token = await ctx.service.user.generateAccessToken({ id: user1.id })
 
   })
 

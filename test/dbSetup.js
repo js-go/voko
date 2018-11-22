@@ -1,19 +1,21 @@
 const { assert } = require('egg-mock/bootstrap')
+const shortid = require('shortid')
 
 async function mysqlSetup({ model, service }) {
-  const now = Date.now()
   const phone = '13988888888'
-  const username = now + phone
+  const phone2 = '18588888888'
 
-  const user = await service.user.newUser({ phone, password: phone, username })
+  const user = await service.user.newUser({ phone, password: phone, username: shortid() })
+  const user2 = await service.user.newUser({ phone: phone2, password: phone2, username: shortid() })
 
   assert(user.phone === phone)
-  assert(user.username === username)
+  assert(user2.phone === phone2)
 
   // console.log('mysqlSetup')
 
   return {
     user,
+    user2,
   }
 }
 

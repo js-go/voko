@@ -17,5 +17,9 @@ module.exports = ({ model, Sequelize }) => {
     updated_at: Sequelize.DATE,
   })
 
+  Group.associate = function() {
+    model.Group.hasMany(model.GroupMember)
+  }
+
   return Group
 }

@@ -17,11 +17,16 @@ class GroupService extends Service {
     group.group_owner_id = owner
     group.can_delete = !is_default
 
-    const newGroup = await group.save()
+    try {
+      const newGroup = await group.save()
 
-    await this.addMember(newGroup.id, owner)
+      await this.addMember(newGroup.id, owner)
 
-    return newGroup
+      return newGroup.id
+    } catch (err) {
+      this.ctx.logger.error(err)
+      throw new Error('create  group error')
+    }
   }
 
   async remove({ group_id, user_id }) {
@@ -40,12 +45,19 @@ class GroupService extends Service {
       throw new Error('不能删除默认组')
     }
 
-    return await find_group.update({
-      is_deleted: true,
-    })
+    try {
+      await find_group.update({
+        is_deleted: true,
+      })
+
+      return true
+    } catch (err) {
+      this.ctx.logger.error(err)
+      throw new Error('删除出错')
+    }
   }
 
-  async update({ current_user, group_id, name, color }) {
+  async update({ current_user, group_id, name, color, mute }) {
     const find_group = await this.ctx.model.Group.findOne({
       where: {
         id: group_id,
@@ -56,31 +68,34 @@ class GroupService extends Service {
       throw new Error('group not found')
     }
 
+    const groupMember = await this.ctx.model.GroupMember.findOne({
+      where: {
+        group_id,
+        user_id: current_user.id,
+      },
+    })
+
     if (isGroupOwner(find_group, current_user)) {
       await find_group.update({
         group_name: name,
       })
     }
 
-    // update user custom settings
-    // const groupSetting = await this.ctx.model.GroupSettings.findOne({
-    //   user_id: current_user.id,
-    //   group_id,
-    // })
+    const updateBody = {}
 
-    // if (groupSetting) {
-    //   await groupSetting.update({
-    //     color,
-    //   })
-    // } else {
-    //   const newGroupSetting = new this.ctx.model.GroupSetting({
-    //     user_id: current_user.id,
-    //     group_id,
-    //     color,
-    //   })
+    if (color) {
+      updateBody.color = color
+    }
 
-    //   await newGroupSetting.save()
-    // }
+    if (mute) {
+      updateBody.mute = mute
+    }
+
+    if (R.keys(updateBody).length > 0) {
+      await groupMember.update(updateBody, {
+        fields: [ 'color', 'mute' ],
+      })
+    }
 
     return true
   }
@@ -90,14 +105,42 @@ class GroupService extends Service {
    *
    * @param {number} group_id
    */
-  async groupDetail(group_id) {
-    const group = await this.ctx.model.Group.findByPk(group_id)
+  async groupDetail(user_id, group_id) {
+    const groupMember = await this.ctx.model.GroupMember.findOne({
+      where: {
+        group_id,
+        user_id,
+      },
+
+      attributes: [ 'user_id', 'join_date', 'color', 'mute' ],
+    })
+
+    if (!groupMember) {
+      return null
+    }
+
+    const group = await this.ctx.model.Group.findOne({
+      where: {
+        id: group_id,
+      },
+      attributes: [ 'id', 'group_name', 'group_owner_id', 'can_delete', 'is_deleted', 'created_at', 'updated_at' ],
+    })
 
     if (!group) {
       return null
     }
 
-    return group
+    const buildData = {
+      ...group.get({ plain: true }),
+      ...groupMember.get({ plain: true }),
+      todo: {
+        total: 0,
+        remain: 0, // total - done
+        done: 0,
+      },
+    }
+
+    return buildData
   }
 
   async addMember(group_id, user_id) {
@@ -154,6 +197,11 @@ class GroupService extends Service {
     return true
   }
 
+  /**
+   * 用户 group list
+   *
+   * @param {string} user_id
+   */
   async myGroupList(user_id) {
     const join_groups = await this.ctx.model.GroupMember.findAll({
       where: {
@@ -161,19 +209,34 @@ class GroupService extends Service {
       },
       order: [[ 'join_date', 'DESC' ]],
       attributes: [ 'group_id', 'color', 'mute' ],
+      include: [
+        {
+          model: this.ctx.model.Group,
+          attributes: [ 'id', 'group_name', 'group_owner_id', 'can_delete', 'is_deleted', 'created_at', 'updated_at' ],
+        },
+      ],
     })
 
-    const group_ids = R.pluck('group_id', join_groups)
+    const groups = []
 
-    const getGroupInfoTasks = R.map(({ group_id, color, mute }) => {
-      return this.groupDetail(group_id).then(res => ({
-        ...res.dataValues,
-        color,
-        mute,
-      }))
-    }, join_groups)
+    for (const item of join_groups) {
+      const members = await item.group.getGroup_members({
+        attributes: [ 'user_id', 'join_date' ],
+      })
+      groups.push({
+        ...item.group.get({ plain: true }),
+        todo: {
+          total: 0,
+          remain: 0, // total - done
+          done: 0,
+        },
+        color: item.color,
+        mute: item.mute,
+        members: members.map(x => x.get({ plain: true })),
+      })
+    }
 
-    return await Promise.all(getGroupInfoTasks)
+    return groups
   }
 
   async inviteUserInGroup({ group_id, user_id, current_user }) {

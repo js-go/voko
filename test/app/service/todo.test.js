@@ -19,9 +19,9 @@ describe('test/app/service/todo.test.js', () => {
     const id = await ctx.service.todo.createTodo(uid, '这是一条测试', '2018-12-12 12:12:12')
     assert(id)
 
-    const list = '[{"tid":1,"content": "xxx1", "type": 1},{"tid":1,"content": "xxx2", "type": 1}]'
+    const list = [{"tid":1,"content": "xxx1", "type": 1},{"tid":1,"content": "xxx2", "type": 1}]
     const res = await ctx.service.todo.createItemList(list)
-    assert(res.length > 0)
+    assert(res)
   })
 
 })

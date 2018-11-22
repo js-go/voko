@@ -20,5 +20,9 @@ module.exports = ({ model, Sequelize }) => {
     updated_at: Sequelize.DATE,
   })
 
+  GroupMember.associate = function() {
+    model.GroupMember.belongsTo(model.Group)
+  }
+
   return GroupMember
 }

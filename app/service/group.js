@@ -1,6 +1,6 @@
 const Service = require('egg').Service
 const R = require('ramda')
-const { addDays } = require('date-fns')
+const { addDays, isBefore } = require('date-fns')
 
 function groupExist(group) {
   return group && !group.is_deleted
@@ -59,7 +59,7 @@ class GroupService extends Service {
       },
     })
 
-    if (isGroupOwner(find_group, currentUser)) {
+    if (this.isGroupOwner(find_group, currentUser)) {
       await find_group.update({
         group_name: name,
       })
@@ -171,7 +171,7 @@ class GroupService extends Service {
 
     this.isGroupOwner(find_group, currentUser)
 
-    const isExistMember = await this.ctx.model.GroupMember.find({
+    const isExistMember = await this.ctx.model.GroupMember.findAll({
       where: {
         group_id: groupId,
         user_id: user.id,
@@ -281,6 +281,10 @@ class GroupService extends Service {
 
     if (find_invite.invite_user !== currentUser.id) {
       throw new Error('invite user error')
+    }
+
+    if (isBefore(find_invite.expire_date, new Date())) {
+      throw new Error('invite expire')
     }
 
     // 已进入

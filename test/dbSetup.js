@@ -29,6 +29,8 @@ async function mysqlCleanUp({ model }) {
   // clear all group member
   await model.GroupMember.truncate()
 
+  await model.GroupInvite.truncate()
+
   // console.log('mysqlCleanUp')
 }
 

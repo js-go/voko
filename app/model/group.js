@@ -4,7 +4,7 @@ module.exports = ({ model, Sequelize }) => {
   const Group = model.define('group', {
     id: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
     group_name: Sequelize.STRING(30),
-    group_owner_id: Sequelize.STRING(20),
+    group_owner_id: Sequelize.INTEGER,
     can_delete: {
       type: Sequelize.BOOLEAN,
       defaultValue: true,

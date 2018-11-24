@@ -17,16 +17,11 @@ class GroupService extends Service {
     group.group_owner_id = owner
     group.can_delete = !is_default
 
-    try {
-      const newGroup = await group.save()
+    const newGroup = await group.save()
 
-      await this.addMember(newGroup.id, owner)
+    await this.addMember(newGroup.id, owner)
 
-      return newGroup.id
-    } catch (err) {
-      this.ctx.logger.error(err)
-      throw new Error('create  group error')
-    }
+    return newGroup.id
   }
 
   async remove({ group_id, user_id }) {
@@ -49,8 +44,6 @@ class GroupService extends Service {
       await find_group.update({
         is_deleted: true,
       })
-
-      return true
     } catch (err) {
       this.ctx.logger.error(err)
       throw new Error('删除出错')
@@ -239,7 +232,26 @@ class GroupService extends Service {
     return groups
   }
 
+  /**
+   * user invites
+   *
+   * @param {number} user_id
+   */
+  async invites(userId) {
+    const res = await this.ctx.model.GroupInvite.findAll({
+      where: {
+        invite_user: userId,
+      },
+    })
+
+    return res
+  }
+
   async inviteUserInGroup({ group_id, user_id, current_user }) {
+    if (user_id === current_user.id) {
+      throw new Error("You can't invite yourself")
+    }
+
     const find_group = await this.ctx.model.Group.findOne({
       where: {
         id: group_id,
@@ -247,11 +259,11 @@ class GroupService extends Service {
     })
 
     if (!groupExist(find_group)) {
-      throw new Error('group not found')
+      throw new Error('Group not found')
     }
 
     if (!isGroupOwner(find_group, current_user)) {
-      throw new Error('只能创建者邀请加入')
+      throw new Error("You're not an group owner")
     }
 
     const newGroupInvite = new this.ctx.model.GroupInvite()
@@ -266,10 +278,10 @@ class GroupService extends Service {
   /**
    * 是否同意邀请
    */
-  async acceptGroupInvite({ invite_id, current_user, accept }) {
-    const find_invite = this.ctx.model.GroupInvite.findOne({
+  async acceptGroupInvite({ inviteId, currentUser, accept }) {
+    const find_invite = await this.ctx.model.GroupInvite.findOne({
       where: {
-        id: invite_id,
+        id: inviteId,
       },
     })
 
@@ -277,29 +289,28 @@ class GroupService extends Service {
       throw new Error('invite not found')
     }
 
-    if (find_invite.invite_user !== user.id) {
-      throw new Error('invite error')
+    if (find_invite.invite_user !== currentUser.id) {
+      throw new Error('invite user error')
     }
 
-    // 如果已进入
-    const is_existMember = this.ctx.model.GroupMember.findOne({
+    // 已进入
+    const is_existMember = await this.ctx.model.GroupMember.findAll({
       where: {
         group_id: find_invite.group_id,
-        user_id: user.id,
+        user_id: currentUser.id,
       },
     })
 
     if (is_existMember && is_existMember.length > 0) {
-      throw new Error('error')
+      throw new Error('user exist')
     }
 
     if (accept) {
-      await this.ctx.service.addMember(find_invite.group_id, user.id)
+      await this.ctx.service.group.addMember(find_invite.group_id, currentUser.id)
+      await find_invite.destroy()
     } else {
       await find_invite.destroy()
     }
-
-    return
   }
 }
 

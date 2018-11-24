@@ -171,7 +171,7 @@ class GroupService extends Service {
 
     this.isGroupOwner(find_group, currentUser)
 
-    const isExistMember = await this.ctx.model.GroupMember.findAll({
+    const isExistMember = await this.ctx.model.GroupMember.findOne({
       where: {
         group_id: groupId,
         user_id: user.id,

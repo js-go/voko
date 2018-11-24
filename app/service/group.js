@@ -2,73 +2,64 @@ const Service = require('egg').Service
 const R = require('ramda')
 const { addDays } = require('date-fns')
 
-function isGroupOwner(group, user) {
-  return group.group_owner_id === user.id
-}
-
 function groupExist(group) {
   return group && !group.is_deleted
 }
 
 class GroupService extends Service {
-  async newGroup({ group_name, owner, is_default = false }) {
+  async newGroup({ groupName, owner, isDefault = false }) {
     const group = new this.ctx.model.Group()
-    group.group_name = group_name
+    group.group_name = groupName
     group.group_owner_id = owner
-    group.can_delete = !is_default
+    group.can_delete = !isDefault
 
     const newGroup = await group.save()
 
-    await this.addMember(newGroup.id, owner)
+    await this._addMember(newGroup.id, owner)
 
     return newGroup.id
   }
 
-  async remove({ group_id, user_id }) {
+  async remove({ groupId, user }) {
     const find_group = await this.ctx.model.Group.findOne({
       where: {
-        id: group_id,
-        group_owner_id: user_id, // 只能删除自己的
+        id: groupId,
+        group_owner_id: user.id, // 只能删除自己的
       },
     })
 
     if (!groupExist(find_group)) {
-      throw new Error('group not found')
+      throw new Error('Group not found')
     }
 
     if (!find_group.can_delete) {
       throw new Error('不能删除默认组')
     }
 
-    try {
-      await find_group.update({
-        is_deleted: true,
-      })
-    } catch (err) {
-      this.ctx.logger.error(err)
-      throw new Error('删除出错')
-    }
+    await find_group.update({
+      is_deleted: true,
+    })
   }
 
-  async update({ current_user, group_id, name, color, mute }) {
+  async update({ groupId, currentUser, name, color, mute }) {
     const find_group = await this.ctx.model.Group.findOne({
       where: {
-        id: group_id,
+        id: groupId,
       },
     })
 
     if (!groupExist(find_group)) {
-      throw new Error('group not found')
+      throw new Error('Group not found')
     }
 
     const groupMember = await this.ctx.model.GroupMember.findOne({
       where: {
-        group_id,
-        user_id: current_user.id,
+        group_id: groupId,
+        user_id: currentUser.id,
       },
     })
 
-    if (isGroupOwner(find_group, current_user)) {
+    if (isGroupOwner(find_group, currentUser)) {
       await find_group.update({
         group_name: name,
       })
@@ -96,32 +87,32 @@ class GroupService extends Service {
   /**
    * group detail
    *
-   * @param {number} group_id
+   * @param {number} groupId
    */
-  async groupDetail(user_id, group_id) {
+  async groupDetail(userId, groupId) {
     const groupMember = await this.ctx.model.GroupMember.findOne({
       where: {
-        group_id,
-        user_id,
+        group_id: groupId,
+        user_id: userId,
       },
 
       attributes: [ 'user_id', 'join_date', 'color', 'mute' ],
     })
 
     if (!groupMember) {
-      return null
+      throw new Error('GroupMember not found')
     }
 
     const group = await this.ctx.model.Group.findOne({
       where: {
-        id: group_id,
+        id: groupId,
       },
       attributes: [ 'id', 'group_name', 'group_owner_id', 'can_delete', 'is_deleted', 'created_at', 'updated_at' ],
     })
 
-    if (!group) {
-      return null
-    }
+    // if (!group) {
+    //   throw new Error('Group not found')
+    // }
 
     const buildData = {
       ...group.get({ plain: true }),
@@ -136,22 +127,34 @@ class GroupService extends Service {
     return buildData
   }
 
-  async addMember(group_id, user_id) {
-    const is_existMember = this.ctx.model.GroupMember.findOne({
+  async addMember({ groupId, user, currentUser }) {
+    const findGroup = await this.ctx.model.Group.findOne({
       where: {
-        group_id,
-        user_id,
+        id: groupId,
       },
     })
 
-    if (is_existMember && is_existMember.length > 0) {
-      console.info('加入失败，用户已加入')
-      return false
+    this.isGroupOwner(findGroup, currentUser)
+
+    return await this._addMember(groupId, user.id)
+  }
+
+  async _addMember(groupId, userId) {
+    const isExistMember = await this.ctx.model.GroupMember.findOne({
+      where: {
+        group_id: groupId,
+        user_id: userId,
+      },
+      attributes: [ 'id' ],
+    })
+
+    if (isExistMember) {
+      return
     }
 
     const newMember = new this.ctx.model.GroupMember()
-    newMember.group_id = group_id
-    newMember.user_id = user_id
+    newMember.group_id = groupId
+    newMember.user_id = userId
     newMember.join_date = Date.now()
 
     await newMember.save()
@@ -159,32 +162,25 @@ class GroupService extends Service {
     return true
   }
 
-  async removeMember({ group_id, user_id, current_user }) {
+  async removeMember({ groupId, user, currentUser }) {
     const find_group = await this.ctx.model.Group.findOne({
       where: {
-        id: group_id,
+        id: groupId,
       },
     })
 
-    if (!groupExist(find_group)) {
-      throw new Error('group not found')
-    }
+    this.isGroupOwner(find_group, currentUser)
 
-    if (!isGroupOwner(find_group, current_user)) {
-      // 只能创建者删除成员
-      this.ctx.throw(401, 'remove error')
-      return
-    }
-
-    const is_existMember = this.ctx.model.GroupMember.findOne({
+    const isExistMember = await this.ctx.model.GroupMember.find({
       where: {
-        group_id,
-        user_id,
+        group_id: groupId,
+        user_id: user.id,
       },
+      attributes: [ 'id' ],
     })
 
-    if (is_existMember && is_existMember.length > 0) {
-      await is_existMember.destroy()
+    if (isExistMember) {
+      await isExistMember.destroy()
     }
 
     return true
@@ -193,12 +189,12 @@ class GroupService extends Service {
   /**
    * 用户 group list
    *
-   * @param {string} user_id
+   * @param {string} userId
    */
-  async myGroupList(user_id) {
+  async myGroupList(userId) {
     const join_groups = await this.ctx.model.GroupMember.findAll({
       where: {
-        user_id,
+        user_id: userId,
       },
       order: [[ 'join_date', 'DESC' ]],
       attributes: [ 'group_id', 'color', 'mute' ],
@@ -247,28 +243,22 @@ class GroupService extends Service {
     return res
   }
 
-  async inviteUserInGroup({ group_id, user_id, current_user }) {
-    if (user_id === current_user.id) {
+  async inviteUserInGroup({ groupId, user, currentUser }) {
+    if (user.id === currentUser.id) {
       throw new Error("You can't invite yourself")
     }
 
     const find_group = await this.ctx.model.Group.findOne({
       where: {
-        id: group_id,
+        id: groupId,
       },
     })
 
-    if (!groupExist(find_group)) {
-      throw new Error('Group not found')
-    }
-
-    if (!isGroupOwner(find_group, current_user)) {
-      throw new Error("You're not an group owner")
-    }
+    this.isGroupOwner(find_group, currentUser)
 
     const newGroupInvite = new this.ctx.model.GroupInvite()
-    newGroupInvite.invite_user = user_id
-    newGroupInvite.group_id = group_id
+    newGroupInvite.invite_user = user.id
+    newGroupInvite.group_id = groupId
     newGroupInvite.expire_date = addDays(new Date(), 7)
     await newGroupInvite.save()
 
@@ -306,11 +296,23 @@ class GroupService extends Service {
     }
 
     if (accept) {
-      await this.ctx.service.group.addMember(find_invite.group_id, currentUser.id)
+      await this._addMember(find_invite.group_id, currentUser.id)
       await find_invite.destroy()
     } else {
       await find_invite.destroy()
     }
+  }
+
+  isGroupOwner(group, user) {
+    if (!groupExist(group)) {
+      throw new Error('Group not found')
+    }
+
+    if (group.group_owner_id !== user.id) {
+      throw new Error("You're not an group owner")
+    }
+
+    return true
   }
 }
 

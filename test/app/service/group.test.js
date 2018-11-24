@@ -11,7 +11,7 @@ describe('test/app/service/group.test.js', () => {
   })
 
   beforeEach(async () => {
-    this.testData = testData = await mysqlSetup(ctx)
+    testData = testData = await mysqlSetup(ctx)
   })
 
   afterEach(async () => {
@@ -20,29 +20,47 @@ describe('test/app/service/group.test.js', () => {
 
   it('group detail', async () => {
     const newGroupPayload = {
-      group_name: Date.now() + '_newGroup',
-      owner: this.testData.user.id,
+      groupName: Date.now() + '_newGroup',
+      owner: testData.user.id,
     }
 
     const newGroupId = await ctx.service.group.newGroup(newGroupPayload)
 
     assert.ok(newGroupId)
 
-    const newGroup = await ctx.service.group.groupDetail(this.testData.user.id, newGroupId)
+    const newGroup = await ctx.service.group.groupDetail(testData.user.id, newGroupId)
 
     assert(newGroup.id === newGroupId)
-    assert(newGroup.group_name === newGroupPayload.group_name)
+    assert(newGroup.groupName === newGroupPayload.group_name)
+  })
+
+  it('group member not found', async () => {
+    const { user } = testData
+    const randomId = Math.floor(Math.random() * 10000)
+
+    try {
+      await ctx.service.group.groupDetail(user.id, randomId)
+    } catch (err) {
+      assert.throws(
+        () => {
+          throw err
+        },
+        {
+          message: 'GroupMember not found',
+        }
+      )
+    }
   })
 
   it('my group list', async () => {
     const newGroupPayload = {
-      group_name: Date.now() + '_newGroup',
-      owner: this.testData.user.id,
+      groupName: Date.now() + '_newGroup',
+      owner: testData.user.id,
     }
 
     const newGroupPayload2 = {
-      group_name: Date.now() + '_newGroup',
-      owner: this.testData.user2.id,
+      groupName: Date.now() + '_newGroup',
+      owner: testData.user2.id,
     }
 
     const newGroupId = await ctx.service.group.newGroup(newGroupPayload)
@@ -52,13 +70,13 @@ describe('test/app/service/group.test.js', () => {
     const newGroupId2 = await ctx.service.group.newGroup(newGroupPayload2)
     assert.ok(newGroupId2)
 
-    const groupList = await ctx.service.group.myGroupList(this.testData.user.id)
+    const groupList = await ctx.service.group.myGroupList(testData.user.id)
 
     assert(groupList.length > 0)
     // 新用户默认会有一个 group
     assert(groupList.length === 2)
 
-    const groupList2 = await ctx.service.group.myGroupList(this.testData.user2.id)
+    const groupList2 = await ctx.service.group.myGroupList(testData.user2.id)
 
     assert(groupList2.length > 0)
     // 新用户默认会有一个 group
@@ -67,8 +85,8 @@ describe('test/app/service/group.test.js', () => {
 
   it('create a group', async () => {
     const newGroupPayload = {
-      group_name: Date.now() + '_newGroup',
-      owner: this.testData.user.id,
+      groupName: Date.now() + '_newGroup',
+      owner: testData.user.id,
     }
 
     const newGroupId = await ctx.service.group.newGroup(newGroupPayload)
@@ -78,8 +96,8 @@ describe('test/app/service/group.test.js', () => {
 
   it('update group', async () => {
     const newGroupPayload = {
-      group_name: Date.now() + '_newGroup',
-      owner: this.testData.user.id,
+      groupName: Date.now() + '_newGroup',
+      owner: testData.user.id,
       color: 'red',
       mute: '1',
     }
@@ -93,8 +111,8 @@ describe('test/app/service/group.test.js', () => {
     const newMute = '2'
 
     const updateGroup = await ctx.service.group.update({
-      current_user: this.testData.user,
-      group_id: newGroupId,
+      currentUser: testData.user,
+      groupId: newGroupId,
       name: newName,
       color: newColor,
       mute: newMute,
@@ -102,34 +120,55 @@ describe('test/app/service/group.test.js', () => {
 
     assert.ok(updateGroup)
 
-    const newGroup = await ctx.service.group.groupDetail(this.testData.user.id, newGroupId)
+    const newGroup = await ctx.service.group.groupDetail(testData.user.id, newGroupId)
 
     assert(newGroup.group_name === newName)
     assert(newGroup.color === newColor)
     assert(newGroup.mute === newMute)
   })
 
+  it('update not found', async () => {
+    const { user } = testData.user
+    const randomId = Math.floor(Math.random() * 1000)
+
+    try {
+      await ctx.service.group.update({
+        currentUser: user,
+        groupId: randomId,
+      })
+    } catch (err) {
+      assert.throws(
+        () => {
+          throw err
+        },
+        {
+          message: 'Group not found',
+        }
+      )
+    }
+  })
+
   describe('remove group', () => {
     it('remove owner group', async () => {
       const newGroupPayload = {
-        group_name: Date.now() + '_newGroup',
-        owner: this.testData.user.id,
+        groupName: Date.now() + '_newGroup',
+        owner: testData.user.id,
       }
 
       const newGroupId = await ctx.service.group.newGroup(newGroupPayload)
 
       assert.ok(newGroupId)
 
-      await ctx.service.group.remove({ group_id: newGroupId, user_id: this.testData.user.id })
+      await ctx.service.group.remove({ groupId: newGroupId, user: testData.user })
 
-      const findGroup = await ctx.service.group.groupDetail(this.testData.user.id, newGroupId)
+      const findGroup = await ctx.service.group.groupDetail(testData.user.id, newGroupId)
 
       assert(findGroup.is_deleted === true)
     })
 
     // 使用 user 账号删除 user2 的 group
     it('remove other user group', async () => {
-      const { user, user2 } = this.testData
+      const { user, user2 } = testData
       const groupList = await ctx.service.group.myGroupList(user2.id)
 
       assert(groupList.length > 0)
@@ -137,7 +176,7 @@ describe('test/app/service/group.test.js', () => {
       const defaultGroup = R.find(R.propEq('group_owner_id', user2.id), groupList)
 
       try {
-        await ctx.service.group.remove({ group_id: defaultGroup.id, user_id: user.id })
+        await ctx.service.group.remove({ groupId: defaultGroup.id, user })
       } catch (err) {
         // 删除失败
         assert.throws(
@@ -145,37 +184,39 @@ describe('test/app/service/group.test.js', () => {
             throw err
           },
           {
-            message: 'group not found',
+            message: 'Group not found',
           }
         )
       }
     })
 
     it('group not found', async () => {
+      const { user } = testData
       const randomId = Math.floor(Math.random() * 10000)
 
       try {
-        await ctx.service.group.remove({ group_id: randomId, user_id: this.testData.user.id })
+        await ctx.service.group.remove({ groupId: randomId, user })
       } catch (err) {
         assert.throws(
           () => {
             throw err
           },
           {
-            message: 'group not found',
+            message: 'Group not found',
           }
         )
       }
     })
 
     it('default group remove', async () => {
+      const { user } = testData
       // 找到自己的默认组
-      const groupList = await ctx.service.group.myGroupList(this.testData.user.id)
-      const defaultGroup = R.find(R.propEq('group_owner_id', this.testData.user.id), groupList)
+      const groupList = await ctx.service.group.myGroupList(user.id)
+      const defaultGroup = R.find(R.propEq('group_owner_id', user.id), groupList)
 
       // 删除
       try {
-        await ctx.service.group.remove({ group_id: defaultGroup.id, user_id: this.testData.user.id })
+        await ctx.service.group.remove({ groupId: defaultGroup.id, user })
       } catch (err) {
         // 删除失败
         assert.throws(
@@ -189,6 +230,63 @@ describe('test/app/service/group.test.js', () => {
       }
     })
   })
+
+  describe('member', function() {
+    it('addMember', async () => {
+      const { user, user2 } = testData
+
+      const newGroupPayload = {
+        groupName: Date.now() + '_newGroup',
+        owner: user.id,
+      }
+
+      const oldMyGroupList = await ctx.service.group.myGroupList(user2.id)
+      const newGroupId = await ctx.service.group.newGroup(newGroupPayload)
+
+      assert(newGroupId > 0)
+      assert(oldMyGroupList.length === 1)
+
+      await ctx.service.group.addMember({ groupId: newGroupId, user: user2, currentUser: user })
+
+      await ctx.service.group.myGroupList(user2.id)
+
+      const newMyGroupList = await ctx.service.group.myGroupList(user2.id)
+
+      assert(newMyGroupList.length === 2)
+    })
+
+    it('removeMember success', async () => {
+      const { user, user2 } = testData
+
+      const newGroupPayload = {
+        groupName: Date.now() + '_newGroup',
+        owner: user.id,
+      }
+
+      const oldMyGroupList = await ctx.service.group.myGroupList(user2.id)
+      const newGroupId = await ctx.service.group.newGroup(newGroupPayload)
+
+      assert(newGroupId > 0)
+      assert(oldMyGroupList.length === 1)
+
+      await ctx.service.group.addMember({ groupId: newGroupId, user: user2, currentUser: user })
+
+      await ctx.service.group.myGroupList(user2.id)
+
+      const newMyGroupList = await ctx.service.group.myGroupList(user2.id)
+
+      assert(newMyGroupList.length === 2)
+
+      // remove
+
+      await ctx.service.group.removeMember({ groupId: newGroupId, user: user2, currentUser: user })
+
+      const newMyGroupList2 = await ctx.service.group.myGroupList(user2.id)
+
+      assert(newMyGroupList2.length === 1)
+    })
+  })
+
   describe('invite group', () => {
     it('invite lists', async () => {
       const { user, user2 } = testData
@@ -198,7 +296,7 @@ describe('test/app/service/group.test.js', () => {
       assert(invites.length === 0)
 
       const newGroupPayload = {
-        group_name: Date.now() + '_newGroup',
+        groupName: Date.now() + '_newGroup',
         owner: user2.id,
       }
 
@@ -207,9 +305,9 @@ describe('test/app/service/group.test.js', () => {
       assert.ok(newGroupId)
 
       const newInvite = await ctx.service.group.inviteUserInGroup({
-        group_id: newGroupId,
-        user_id: user.id,
-        current_user: user2,
+        groupId: newGroupId,
+        user,
+        currentUser: user2,
       })
 
       assert(newInvite.id)
@@ -222,9 +320,9 @@ describe('test/app/service/group.test.js', () => {
     })
 
     it('invite user', async () => {
-      const { user, user2 } = this.testData
+      const { user, user2 } = testData
       const newGroupPayload = {
-        group_name: Date.now() + '_newGroup',
+        groupName: Date.now() + '_newGroup',
         owner: user.id,
       }
 
@@ -233,9 +331,9 @@ describe('test/app/service/group.test.js', () => {
       assert.ok(newGroupId)
 
       await ctx.service.group.inviteUserInGroup({
-        group_id: newGroupId,
-        user_id: user2.id,
-        current_user: user,
+        groupId: newGroupId,
+        user: user2,
+        currentUser: user,
       })
 
       const invites = await ctx.service.group.invites(user2.id)
@@ -251,9 +349,9 @@ describe('test/app/service/group.test.js', () => {
     })
 
     it('invite self', async () => {
-      const { user } = this.testData
+      const { user } = testData
       const newGroupPayload = {
-        group_name: Date.now() + '_newGroup',
+        groupName: Date.now() + '_newGroup',
         owner: user.id,
       }
 
@@ -263,9 +361,9 @@ describe('test/app/service/group.test.js', () => {
 
       try {
         await ctx.service.group.inviteUserInGroup({
-          group_id: newGroupId,
-          user_id: user.id,
-          current_user: user,
+          groupId: newGroupId,
+          user,
+          currentUser: user,
         })
       } catch (err) {
         assert.throws(
@@ -280,14 +378,14 @@ describe('test/app/service/group.test.js', () => {
     })
 
     it('invite group not found', async () => {
-      const { user, user2 } = this.testData
+      const { user, user2 } = testData
       const randomId = Math.floor(Math.random() * 10000)
 
       try {
         await ctx.service.group.inviteUserInGroup({
-          group_id: randomId,
-          user_id: user2.id,
-          current_user: user,
+          groupId: randomId,
+          user: user2,
+          currentUser: user,
         })
       } catch (err) {
         assert.throws(
@@ -295,16 +393,16 @@ describe('test/app/service/group.test.js', () => {
             throw err
           },
           {
-            message: 'group not found',
+            message: 'Group not found',
           }
         )
       }
     })
 
     it('invite permissions error', async () => {
-      const { user, user2 } = this.testData
+      const { user, user2 } = testData
       const newGroupPayload = {
-        group_name: Date.now() + '_newGroup',
+        groupName: Date.now() + '_newGroup',
         owner: user.id,
       }
 
@@ -314,9 +412,9 @@ describe('test/app/service/group.test.js', () => {
 
       try {
         await ctx.service.group.inviteUserInGroup({
-          group_id: newGroupId,
-          user_id: user.id,
-          current_user: user2,
+          groupId: newGroupId,
+          user,
+          currentUser: user2,
         })
       } catch (err) {
         assert.throws(
@@ -324,16 +422,16 @@ describe('test/app/service/group.test.js', () => {
             throw err
           },
           {
-            message: '只能创建者邀请加入',
+            message: "You're not an group owner",
           }
         )
       }
     })
 
     it('reject invite', async () => {
-      const { user, user2 } = this.testData
+      const { user, user2 } = testData
       const newGroupPayload = {
-        group_name: Date.now() + '_newGroup',
+        groupName: Date.now() + '_newGroup',
         owner: user.id,
       }
 
@@ -342,9 +440,9 @@ describe('test/app/service/group.test.js', () => {
       assert.ok(newGroupId)
 
       await ctx.service.group.inviteUserInGroup({
-        group_id: newGroupId,
-        user_id: user2.id,
-        current_user: user,
+        groupId: newGroupId,
+        user: user2,
+        currentUser: user,
       })
 
       const invites = await ctx.service.group.invites(user2.id)
@@ -366,9 +464,9 @@ describe('test/app/service/group.test.js', () => {
     })
 
     it('accept invite', async () => {
-      const { user, user2 } = this.testData
+      const { user, user2 } = testData
       const newGroupPayload = {
-        group_name: Date.now() + '_newGroup',
+        groupName: Date.now() + '_newGroup',
         owner: user.id,
       }
 
@@ -377,9 +475,9 @@ describe('test/app/service/group.test.js', () => {
       assert.ok(newGroupId)
 
       await ctx.service.group.inviteUserInGroup({
-        group_id: newGroupId,
-        user_id: user2.id,
-        current_user: user,
+        groupId: newGroupId,
+        user: user2,
+        currentUser: user,
       })
 
       const invites = await ctx.service.group.invites(user2.id)
@@ -408,7 +506,7 @@ describe('test/app/service/group.test.js', () => {
       const { user, user2 } = testData
 
       const newGroupPayload = {
-        group_name: Date.now() + '_newGroup',
+        groupName: Date.now() + '_newGroup',
         owner: user2.id,
       }
 
@@ -417,9 +515,9 @@ describe('test/app/service/group.test.js', () => {
       assert.ok(newGroupId)
 
       const newInvite = await ctx.service.group.inviteUserInGroup({
-        group_id: newGroupId,
-        user_id: user.id,
-        current_user: user2,
+        groupId: newGroupId,
+        user,
+        currentUser: user2,
       })
 
       assert(newInvite.id)
@@ -436,9 +534,9 @@ describe('test/app/service/group.test.js', () => {
 
       // invite again
       const newInvite2 = await ctx.service.group.inviteUserInGroup({
-        group_id: newGroupId,
-        user_id: user.id,
-        current_user: user2,
+        groupId: newGroupId,
+        user,
+        currentUser: user2,
       })
 
       assert(newInvite2.id !== newInvite.id)
@@ -483,9 +581,9 @@ describe('test/app/service/group.test.js', () => {
     })
 
     it('invite user error', async () => {
-      const { user, user2 } = this.testData
+      const { user, user2 } = testData
       const newGroupPayload = {
-        group_name: Date.now() + '_newGroup',
+        groupName: Date.now() + '_newGroup',
         owner: user.id,
       }
 
@@ -494,9 +592,9 @@ describe('test/app/service/group.test.js', () => {
       assert.ok(newGroupId)
 
       await ctx.service.group.inviteUserInGroup({
-        group_id: newGroupId,
-        user_id: user2.id,
-        current_user: user,
+        groupId: newGroupId,
+        user: user2,
+        currentUser: user,
       })
 
       const invites = await ctx.service.group.invites(user2.id)

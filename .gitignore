@@ -68,6 +68,7 @@ yarn.lock
 coverage/
 .idea/
 run/
+config/
 .DS_Store
 *.sw*
 *.un~

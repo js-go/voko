@@ -5,6 +5,7 @@ module.exports = ({ model, Sequelize }) => {
     id: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
     group_id: Sequelize.INTEGER,
     invite_user: Sequelize.INTEGER,
+    expire_date: Sequelize.DATE,
     created_at: Sequelize.DATE,
     updated_at: Sequelize.DATE,
   })

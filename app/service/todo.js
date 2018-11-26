@@ -78,7 +78,8 @@ class TodoService extends Service {
     })
     
     function _update(list) {
-      const promises = R.map((item) => {
+      const promises = []
+      promises = R.map((item) => {
         Promise.resolve().then(() => item.update({
           content: item.content,
           type: item.type,

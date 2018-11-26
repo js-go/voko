@@ -80,7 +80,7 @@ class TodoController extends Controller {
   async updateTodoItem() {
     const { ctx } = this;
     const { id } = ctx.request.body
-    await ctx.service.todo.updateTodoItem(id)
+    await ctx.service.todo.updateTodoItem(id, content, type, sms_number, sms_msg, phone, map, photo, trip, is_done)
     return ctx.body = {
       status: 200,
       message: 'success'

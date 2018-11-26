@@ -113,7 +113,7 @@ class TodoService extends Service {
     function _delect(list) {
       const promises = []
       promises = R.map((item) => {
-        Promise.resolve().then(() => item.destroy())
+        return Promise.resolve().then(() => item.destroy())
       }, list)
       return promises
     }

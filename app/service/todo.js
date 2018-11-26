@@ -93,10 +93,6 @@ class TodoService extends Service {
       }, list)
       return promises
     }
-    await todo.update({
-      name,
-      is_done: todo_is_done
-    })
     await Promise.all(_update(todoItems))
     return null
   }

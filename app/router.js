@@ -29,7 +29,8 @@ module.exports = app => {
   router.post('/todo/add', controller.todo.add)
   router.get('/todo/list/:page', controller.todo.list)
   router.get('/todo/list/:id', controller.todo.getTodoItem)
-  router.put('/todo/list/:id', controller.todo.updateTodoItem)
+  router.post('/todo/todo_update', controller.todo.updateTodo)
+  router.post('/todo/item_update', controller.todo.updateTodoItem)
   router.delete('/todo/list/:id', controller.todo.delectTodoItem)
 
 }

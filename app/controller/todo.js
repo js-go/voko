@@ -4,7 +4,7 @@ const R = require('ramda')
 class TodoController extends Controller {
   async add() {
     const { ctx } = this;
-    const { uid, name, exp_date } = ctx.request.body
+    const { uid, gid, name, exp_date } = ctx.request.body
     let list = ctx.request.body.list
     let tid;
     const success = () => {
@@ -25,7 +25,7 @@ class TodoController extends Controller {
       error('user require')
     }
     try {
-      tid = await ctx.service.todo.createTodo(uid, name, exp_date)
+      tid = await ctx.service.todo.createTodo(uid, gid, name, exp_date)
     } catch(e) {
       error('error')
     }

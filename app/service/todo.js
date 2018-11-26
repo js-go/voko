@@ -9,13 +9,17 @@ const sql = (str) => {
 }
 
 class TodoService extends Service {
-  async createTodo(uid, name, exp_date) {
+  async createTodo(uid, gid, name, exp_date) {
     const todo = new this.ctx.model.Todo()
+    const member = new this.ctx.model.GroupMember()
     todo.uid = uid
     todo.name = name
     todo.is_done = false
     todo.exp_date = exp_date
+    member.group_id = gid
+    member.user_id = uid
     try {
+      await member.save()
       const item = await todo.save()
       return item.id
     } catch(e) {

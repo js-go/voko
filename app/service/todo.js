@@ -70,7 +70,7 @@ class TodoService extends Service {
     
     function _update(list) {
       const promises = R.map((item) => {
-        Promise.resolve().then(() => item.updateAttributes({
+        Promise.resolve().then(() => item.update({
           content,
           type,
           sms_number,

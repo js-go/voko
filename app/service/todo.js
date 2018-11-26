@@ -80,7 +80,7 @@ class TodoService extends Service {
     function _update(list) {
       const promises = []
       promises = R.map((item) => {
-        Promise.resolve().then(() => item.update({
+        return Promise.resolve().then(() => item.update({
           content: item.content,
           type: item.type,
           sms_number: item.sms_number,
@@ -111,7 +111,8 @@ class TodoService extends Service {
     })
     
     function _delect(list) {
-      const promises = R.map((item) => {
+      const promises = []
+      promises = R.map((item) => {
         Promise.resolve().then(() => item.destroy())
       }, list)
       return promises

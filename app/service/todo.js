@@ -56,7 +56,7 @@ class TodoService extends Service {
     return item
   }
 
-  async updateTodoItem(id, content, type, sms_number, sms_msg, phone, map, photo, trip, is_done) {
+  async updateTodoItem(id, name, todo_is_done, content, type, sms_number, sms_msg, phone, map, photo, trip, item_is_done) {
     const todo = await this.ctx.model.TodoItem.findOne({
       where: {
         id: id
@@ -79,12 +79,15 @@ class TodoService extends Service {
           map,
           photo,
           trip,
-          is_done
+          is_done: item_is_done
         }))
       }, list)
       return promises
     }
-    await todo.update()
+    await todo.update({
+      name,
+      is_done: todo_is_done
+    })
     await Promise.all(_update(todoItems))
     return null
   }
